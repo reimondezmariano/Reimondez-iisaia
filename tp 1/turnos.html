@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulario de solicitud para turno médico</title>
+  <style>
+    /* Estilos globales y reset retro B/N */
+    * {
+      box-sizing: border-box;
+      font-family: "Courier New", Courier, monospace;
+      /* Puntero estilo retro con borde grueso (2px) */
+      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M2,2 L2,20 L7,15 L11,22 L14,20 L10,13 L17,13 Z" fill="white" stroke="black" stroke-width="2" stroke-linejoin="round"/></svg>'), auto !important;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      user-select: none;
+    }
+
+    /* Ventana estilo Windows 3.1 */
+    .win-window {
+      background-color: #ffffff;
+      border: 3px solid #000000;
+      box-shadow: 6px 6px 0px #000000;
+      width: 100%;
+      max-width: 600px;
+      padding: 4px;
+      position: relative;
+    }
+
+    /* Encabezado / Barra de título */
+    header.win-titlebar {
+      background-color: #000000;
+      color: #ffffff;
+      padding: 4px 8px;
+      font-weight: bold;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      letter-spacing: 1px;
+    }
+
+    .win-content {
+      padding: 16px;
+      border: 1px solid #000000;
+      margin-top: 4px;
+    }
+
+    .field-group {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    /* Entradas estilo Windows 3.1 (Borde invertido hundido) */
+    input[type="text"], input[type="date"], textarea {
+      border: 2px solid #000000;
+      background-color: #ffffff;
+      color: #000000;
+      padding: 6px;
+      outline: none;
+      font-size: 14px;
+      width: 100%;
+    }
+
+    /* Regla para invertir texto en el input de nombre */
+    #nombreInput {
+      transform: scaleX(-1);
+      text-align: right;
+    }
+
+    /* Regla para ocultar texto de la fecha cuando está completa */
+    .date-hidden {
+      color: transparent !important;
+      background-color: #ffffff !important;
+      text-shadow: 0 0 0 transparent !important;
+    }
+
+    .date-hidden::-webkit-datetime-edit,
+    .date-hidden::-webkit-inner-spin-button,
+    .date-hidden::-webkit-calendar-picker-indicator {
+      opacity: 0;
+    }
+
+    .section-title {
+      font-weight: bold;
+      border-bottom: 2px solid #000000;
+      padding-bottom: 4px;
+      margin-top: 20px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    /* Mensajes de error */
+    .error-msg {
+      color: #000000;
+      background-color: #ffffff;
+      border: 2px dashed #000000;
+      padding: 6px;
+      margin-top: 6px;
+      font-size: 12px;
+      font-weight: bold;
+      display: none;
+    }
+
+    /* Área de botones */
+    .button-container {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+      position: relative;
+      min-height: 60px;
+      align-items: flex-start;
+    }
+
+    /* Botones estilo Windows 3.1 */
+    button {
+      background-color: #ffffff;
+      border: 2px solid #000000;
+      box-shadow: 3px 3px 0px #000000;
+      padding: 6px 16px;
+      font-weight: bold;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    button:active {
+      box-shadow: 0px 0px 0px #000000;
+      transform: translate(3px, 3px);
+    }
+
+    button:disabled {
+      border: 2px solid #888888;
+      color: #888888;
+      box-shadow:none;
+      cursor: not-allowed !important;
+    }
+
+    /* Garantizar que el botón Cancelar se solape y tape la interfaz al crecer */
+    #btnCancelar {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      z-index: 9999;
+      transition: width 0.15s ease, height 0.15s ease, font-size 0.15s ease;
+    }
+
+    /* Posición absoluta para mover el botón Aceptar de forma aleatoria */
+    #btnAceptar {
+      transition: top 0.1s ease, left 0.1s ease, width 0.1s ease, height 0.1s ease;
+    }
+
+    /* Cuadro de diálogo modal retro */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+
+    .modal-box {
+      background: #ffffff;
+      border: 3px solid #000000;
+      box-shadow: 8px 8px 0px #000000;
+      padding: 16px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .modal-title {
+      background: #000000;
+      color: #ffffff;
+      padding: 4px;
+      font-weight: bold;
+      margin: -16px -16px 16px -16px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="win-window">
+    <header class="win-titlebar">
+      <span>Formulario de solicitud para turno médico</span>
+      <span id="btnClose" style="cursor: pointer; padding: 0 4px;">[X]</span>
+    </header>
+
+    <div class="win-content">
+      <!-- Datos del Paciente -->
+      <div class="field-group">
+        <label for="nombreInput">Nombre:</label>
+        <input type="text" id="nombreInput" placeholder="Ingrese nombre" autocomplete="off">
+      </div>
+
+      <div class="field-group">
+        <label for="apellidoInput">Apellido:</label>
+        <input type="text" id="apellidoInput" placeholder="Ingrese apellido" autocomplete="off">
+      </div>
+
+      <div class="field-group">
+        <label for="fechaInput">Fecha de nacimiento:</label>
+        <input type="date" id="fechaInput">
+      </div>
+
+      <!-- Sección Razones de la consulta -->
+      <section>
+        <div class="section-title">Razones de la consulta</div>
+        <div class="field-group">
+          <textarea id="razonesInput" placeholder="Escriba detalladamente las razones de su consulta..."></textarea>
+          <div id="errorMin" class="error-msg">Falta más información para su consulta</div>
+          <div id="errorMax" class="error-msg">Demasiada información. Dirijase urgente al médico</div>
+        </div>
+      </section>
+
+      <!-- Botones de Acción -->
+      <div class="button-container" id="btnArea">
+        <button id="btnAceptar" disabled>Aceptar</button>
+        <button id="btnCancelar">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Mensajes de Alerta -->
+  <div class="modal-overlay" id="customModal">
+    <div class="modal-box">
+      <div class="modal-title">SISTEMA MEDICO v3.1</div>
+      <p id="modalMessage">Mensaje de error</p>
+      <br>
+      <button id="btnModalOk">Aceptar</button>
+    </div>
+  </div>
+
+  <script>
+    // Referencias a los elementos del DOM
+    const nombreInput = document.getElementById('nombreInput');
+    const apellidoInput = document.getElementById('apellidoInput');
+    const fechaInput = document.getElementById('fechaInput');
+    const razonesInput = document.getElementById('razonesInput');
+    
+    const errorMin = document.getElementById('errorMin');
+    const errorMax = document.getElementById('errorMax');
+    
+    const btnAceptar = document.getElementById('btnAceptar');
+    const btnCancelar = document.getElementById('btnCancelar');
+    const btnArea = document.getElementById('btnArea');
+    const btnClose = document.getElementById('btnClose');
+    
+    const customModal = document.getElementById('customModal');
+    const modalMessage = document.getElementById('modalMessage');
+    const btnModalOk = document.getElementById('btnModalOk');
+
+    // Variables de configuración de tamaños
+    const baseFontSizeApellido = 14;
+    const baseFontSizeCancelar = 12;
+    let cancelFontSize = baseFontSizeCancelar;
+    let timerAceptar = null;
+
+    // Accion para el botón [X] de la barra de título
+    btnClose.addEventListener('click', () => {
+      mostrarModal("Turno reservado exitosamente");
+    });
+
+    // 1. Efecto en Apellido: aumenta 5px por cada letra tipeada
+    apellidoInput.addEventListener('input', () => {
+      const cantidadLetras = apellidoInput.value.length;
+      const nuevoTamaño = baseFontSizeApellido + (cantidadLetras * 5);
+      apellidoInput.style.fontSize = `${nuevoTamaño}px`;
+      validarFormulario();
+    });
+
+    // 2. Efecto en Nombre
+    nombreInput.addEventListener('input', () => {
+      validarFormulario();
+    });
+
+    // 3. Ocultar fecha de nacimiento una vez ingresada
+    const handleFechaChange = () => {
+      if (fechaInput.value !== "") {
+        fechaInput.classList.add('date-hidden');
+      } else {
+        fechaInput.classList.remove('date-hidden');
+      }
+      validarFormulario();
+    };
+    fechaInput.addEventListener('input', handleFechaChange);
+    fechaInput.addEventListener('change', handleFechaChange);
+
+    // 4. Validación de Razones de la consulta (Debe ser mayor a 1000 y menor a 1002 -> exactamente 1001)
+    razonesInput.addEventListener('input', () => {
+      const largo = razonesInput.value.length;
+
+      if (largo > 0 && largo <= 1000) {
+        errorMin.style.display = 'block';
+        errorMax.style.display = 'none';
+      } else if (largo >= 1002) {
+        errorMin.style.display = 'none';
+        errorMax.style.display = 'block';
+      } else {
+        errorMin.style.display = 'none';
+        errorMax.style.display = 'none';
+      }
+
+      validarFormulario();
+    });
+
+    // 5. Comprobar si todas las condiciones del formulario son válidas
+    function validarFormulario() {
+      const nombreValido = nombreInput.value.trim().length > 0;
+      const apellidoValido = apellidoInput.value.trim().length > 0;
+      const fechaValida = fechaInput.value !== "";
+      const largoRazones = razonesInput.value.length;
+      // Condición: mayor a 1000 y menor a 1002
+      const razonesValida = largoRazones > 1000 && largoRazones < 1002;
+
+      if (nombreValido && apellidoValido && fechaValida && razonesValida) {
+        btnAceptar.disabled = false;
+      } else {
+        btnAceptar.disabled = true;
+        resetPosicionAceptar();
+      }
+    }
+
+    // Comportamiento del temporizador al posar el mouse sobre el botón "Aceptar"
+    btnAceptar.addEventListener('mouseenter', () => {
+      if (btnAceptar.disabled) return;
+
+      // Disparar un temporizador de 150ms
+      timerAceptar = setTimeout(() => {
+        moverBotonAceptarAleatoriamente();
+        agrandarBotonCancelar();
+        achicarBotonAceptar();
+      }, 150);
+    });
+
+    btnAceptar.addEventListener('mouseleave', () => {
+      // Si sale del botón antes de los 150ms, se cancela el timer
+      if (timerAceptar) {
+        clearTimeout(timerAceptar);
+        timerAceptar = null;
+      }
+    });
+
+    // Mueve el botón "Aceptar" a un lugar aleatorio del contenedor o pantalla accesible
+    function moverBotonAceptarAleatoriamente() {
+      btnAceptar.style.position = 'fixed';
+      
+      const padding = 50;
+      const maxX = Math.max(10, window.innerWidth - btnAceptar.offsetWidth - padding);
+      const maxY = Math.max(10, window.innerHeight - btnAceptar.offsetHeight - padding);
+      
+      const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
+      const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
+
+      btnAceptar.style.left = `${randomX}px`;
+      btnAceptar.style.top = `${randomY}px`;
+    }
+
+    // Agranda el botón "Cancelar" para solapar y bloquear progresivamente la interfaz
+    function agrandarBotonCancelar() {
+      const currentWidth = btnCancelar.offsetWidth;
+      const currentHeight = btnCancelar.offsetHeight;
+
+      btnCancelar.style.width = `${currentWidth + 60}px`;
+      btnCancelar.style.height = `${currentHeight + 40}px`;
+      
+      cancelFontSize += 5;
+      btnCancelar.style.fontSize = `${cancelFontSize}px`;
+    }
+
+    // Achica el botón "Aceptar" (-10px ancho, -5px alto)
+    function achicarBotonAceptar() {
+      const currentWidth = btnAceptar.offsetWidth;
+      const currentHeight = btnAceptar.offsetHeight;
+
+      const nuevoAncho = Math.max(15, currentWidth - 10);
+      const nuevoAlto = Math.max(10, currentHeight - 5);
+
+      btnAceptar.style.width = `${nuevoAncho}px`;
+      btnAceptar.style.height = `${nuevoAlto}px`;
+    }
+
+    // Si el usuario logra hacer click en "Aceptar" antes de que escape
+    btnAceptar.addEventListener('click', () => {
+      if (!btnAceptar.disabled) {
+        mostrarModal("Turnos onlines colapsados. Dirijase personalmente al sanatorio");
+      }
+    });
+
+    // Botón Cancelar: Vuelve todo a la situación inicial
+    btnCancelar.addEventListener('click', () => {
+      resetTodo();
+    });
+
+    function resetPosicionAceptar() {
+      btnAceptar.style.position = 'static';
+      btnAceptar.style.left = 'auto';
+      btnAceptar.style.top = 'auto';
+    }
+
+    function resetTodo() {
+      // Limpiar campos
+      nombreInput.value = '';
+      apellidoInput.value = '';
+      fechaInput.value = '';
+      razonesInput.value = '';
+
+      // Resetear estilos de inputs
+      apellidoInput.style.fontSize = `${baseFontSizeApellido}px`;
+      fechaInput.classList.remove('date-hidden');
+
+      // Ocultar errores
+      errorMin.style.display = 'none';
+      errorMax.style.display = 'none';
+
+      // Resetear botón Aceptar
+      if (timerAceptar) clearTimeout(timerAceptar);
+      resetPosicionAceptar();
+      btnAceptar.disabled = true;
+      btnAceptar.style.width = 'auto';
+      btnAceptar.style.height = 'auto';
+
+      // Resetear botón Cancelar
+      btnCancelar.style.width = 'auto';
+      btnCancelar.style.height = 'auto';
+      cancelFontSize = baseFontSizeCancelar;
+      btnCancelar.style.fontSize = `${baseFontSizeCancelar}px`;
+
+      validarFormulario();
+    }
+
+    // Utilidad de Modal personalizado (en reemplazo de alert())
+    function mostrarModal(mensaje) {
+      modalMessage.textContent = mensaje;
+      customModal.style.display = 'flex';
+    }
+
+    btnModalOk.addEventListener('click', () => {
+      customModal.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
