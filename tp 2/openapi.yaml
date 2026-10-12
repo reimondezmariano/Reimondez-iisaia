@@ -1,0 +1,182 @@
+openapi: 3.1.0
+info:
+  title: API de recetas e ingredientes
+  description: Cada receta agrupa ingredientes. Un ingrediente no existe fuera de una receta.
+  version: 1.0.0
+
+paths:
+  /recipes:
+    get:
+      summary: Lista todas las recetas
+      responses:
+        '200':
+          description: Lista de recetas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Recipe'
+    post:
+      summary: Crea una receta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeInput'
+      responses:
+        '201':
+          description: Receta creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '400':
+          description: Solicitud inválida. Falta el campo name.
+
+  /recipes/{recipeId}:
+    parameters:
+      - name: recipeId
+        in: path
+        required: true
+        description: Identificador de la receta
+        schema:
+          type: integer
+    get:
+      summary: Obtiene una receta
+      responses:
+        '200':
+          description: La receta pedida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+        '404':
+          description: La receta no existe.
+    delete:
+      summary: Borra una receta
+      description: Borra también todos los ingredientes de la receta.
+      responses:
+        '204':
+          description: Receta borrada, sin cuerpo en la respuesta.
+        '404':
+          description: La receta no existe.
+
+  /recipes/{recipeId}/ingredients:
+    parameters:
+      - name: recipeId
+        in: path
+        required: true
+        description: Identificador de la receta
+        schema:
+          type: integer
+    get:
+      summary: Lista los ingredientes de una receta
+      responses:
+        '200':
+          description: Lista de ingredientes de la receta
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ingredient'
+        '404':
+          description: La receta indicada en el path no existe.
+    post:
+      summary: Agrega un ingrediente a una receta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngredientInput'
+      responses:
+        '201':
+          description: Ingrediente creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+        '400':
+          description: Solicitud inválida. Falta el campo name o quantity.
+        '404':
+          description: La receta indicada en el path no existe.
+
+  /recipes/{recipeId}/ingredients/{ingredientId}:
+    parameters:
+      - name: recipeId
+        in: path
+        required: true
+        description: Identificador de la receta
+        schema:
+          type: integer
+      - name: ingredientId
+        in: path
+        required: true
+        description: Identificador del ingrediente
+        schema:
+          type: integer
+    delete:
+      summary: Borra un ingrediente de una receta
+      responses:
+        '204':
+          description: Ingrediente borrado, sin cuerpo en la respuesta.
+        '404':
+          description: La receta o el ingrediente no existen.
+
+components:
+  schemas:
+    Recipe:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        servings:
+          type: integer
+        prep_time_minutes:
+          type: integer
+
+    RecipeInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        servings:
+          type: integer
+        prep_time_minutes:
+          type: integer
+
+    Ingredient:
+      type: object
+      required: [id, recipe_id, name, quantity]
+      properties:
+        id:
+          type: integer
+        recipe_id:
+          type: integer
+        name:
+          type: string
+        quantity:
+          type: number
+        unit:
+          type: string
+
+    IngredientInput:
+      type: object
+      required: [name, quantity]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        quantity:
+          type: number
+          exclusiveMinimum: 0
+        unit:
+          type: string
